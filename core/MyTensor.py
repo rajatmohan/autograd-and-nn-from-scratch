@@ -28,24 +28,7 @@ class MyTensor:
     def __radd__(self, other):
         # Right addition to support scalar + MyTensor
         return self + other
-    
-    def __sub__(self, other):
-        # Subtraction operation
-        if not isinstance(other, MyTensor):
-            other = MyTensor(other)
-        out = MyTensor(self.data - other.data, self.require_grad or other.require_grad, _childs=(self, other), _op='-')
-        def _backward():
-            if self.require_grad:
-                self.grad += out.grad
-            if other.require_grad:
-                other.grad += (-out.grad)
-        out._backward = _backward
-        return out
-
-    def __rsub__(self, other):
-        # Right subtraction to support scalar - MyTensor
-        return -(self - other)
-    
+      
     def __mul__(self, other):
         # Multiplication operation
         if not isinstance(other, MyTensor):
@@ -62,6 +45,37 @@ class MyTensor:
     def __rmul__(self, other):
         # Right multiplication to support scalar * MyTensor
         return self * other
+    
+    def __pow__(self, other):
+        # Power operation
+        if not isinstance(other, MyTensor):
+            other = MyTensor(other)
+        out = MyTensor(self.data ** other.data, require_grad = self.require_grad or other.require_grad, _childs=(self, other), _op='pow')
+        def _backward():
+            if self.require_grad:
+                self.grad += (other.data * (self.data ** (other.data - 1)) * out.grad)
+            if other.require_grad:
+                other.grad += ((self.data ** other.data) * math.log(self.data) * out.grad)
+        out._backward = _backward
+        return out
+    
+    def __rpow__(self, other):
+        # Right power to support scalar ** MyTensor
+        if not isinstance(other, MyTensor):
+            other = MyTensor(other)
+        return other ** self
+
+    def __neg__(self):
+        # Negation operation
+        return self * -1
+    
+    def __sub__(self, other):
+        # Subtraction operation
+        return self + (-other)
+
+    def __rsub__(self, other):
+        # Right subtraction to support scalar - MyTensor
+        return -(self - other)
     
     def __truediv__(self, other):
         # Division operation
@@ -82,15 +96,15 @@ class MyTensor:
             other = MyTensor(other)
         return other / self
     
-    def __neg__(self):
-        # Negation operation
-        out = MyTensor(-self.data, self.require_grad, _childs=(self,), _op='neg')
+    def exp(self):
+        # Exponential operation
+        out = MyTensor(data = math.exp(self.data), require_grad=self.require_grad, _childs=(self,), _op='exp')
         def _backward():
             if self.require_grad:
-                self.grad += -out.grad
+                self.grad += out.data * out.grad
         out._backward = _backward
         return out
-    
+
     def tanh(self):
         # Implementing tanh activation function
         out = math.exp(2*self.data) - 1 / (math.exp(2*self.data) + 1)
