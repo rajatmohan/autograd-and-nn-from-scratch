@@ -115,6 +115,17 @@ class MyTensor:
         out._backward = _backward
         return out
     
+    def relu(self):
+        out = MyTensor(data = self.data if self.data > 0 else 0.0, require_grad=self.require_grad, _childs=(self,), _op='relu')
+        def _backward():
+            if self.require_grad:
+                self.grad += ((1.0 if self.data > 0 else 0.0) * out.grad)
+        out._backward = _backward
+        return out
+
+    def zero_grad(self):
+        self.grad = 0.0
+
     def backward(self):
         # Build topological order of nodes and call backward on them
         topo = []
