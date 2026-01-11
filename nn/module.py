@@ -6,8 +6,16 @@ class Module:
                 for item in attr:
                     if hasattr(item, 'require_grad') and item.require_grad:
                         params.append(item)
+                    elif isinstance(item, Module):
+                        params.extend(item.parameters())
             elif hasattr(attr, 'require_grad') and attr.require_grad:
                 params.append(attr)
+            elif isinstance(attr, tuple):
+                for item in attr:
+                    if hasattr(item, 'require_grad') and item.require_grad:
+                        params.append(item)
+                    elif isinstance(item, Module):
+                        params.extend(item.parameters())
             elif isinstance(attr, Module):
                 params.extend(attr.parameters())
         return params
