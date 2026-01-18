@@ -115,6 +115,15 @@ class MyTensor:
         out._backward = _backward
         return out
     
+    def sigmoid(self):
+        out = 1 / (1 + math.exp(-self.data))
+        out = MyTensor(out, require_grad=self.require_grad, _childs=(self,), _op='sigmoid')
+        def backward():
+            if self.require_grad:
+                self.grad += (out.data * (1 - out.data)) * out.grad
+        out._backward = backward
+        return out
+
     def relu(self):
         out = MyTensor(data = self.data if self.data > 0 else 0.0, require_grad=self.require_grad, _childs=(self,), _op='relu')
         def _backward():
