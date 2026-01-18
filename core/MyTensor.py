@@ -95,7 +95,10 @@ class MyTensor:
         if not isinstance(other, MyTensor):
             other = MyTensor(other)
         return other / self
-    
+
+    def __format__(self, format_spec):
+        return format(self.data, format_spec)
+
     def exp(self):
         # Exponential operation
         out = MyTensor(data = math.exp(self.data), require_grad=self.require_grad, _childs=(self,), _op='exp')
