@@ -107,7 +107,7 @@ class MyTensor:
 
     def tanh(self):
         # Implementing tanh activation function
-        out = math.exp(2*self.data) - 1 / (math.exp(2*self.data) + 1)
+        out = math.tanh(self.data)
         out = MyTensor(out, require_grad=self.require_grad, _childs=(self,), _op='tanh')
         def _backward():
             if self.require_grad:
@@ -123,6 +123,16 @@ class MyTensor:
         out._backward = _backward
         return out
 
+    def log(self):
+        # Natural logarithm operation
+        epsilon = 1e-12  # small constant to avoid log(0)
+        out = MyTensor(data = math.log(self.data + epsilon), require_grad=self.require_grad, _childs=(self,), _op='log')
+        def _backward():
+            if self.require_grad:
+                self.grad += (1 / self.data) * out.grad
+        out._backward = _backward
+        return out
+    
     def zero_grad(self):
         self.grad = 0.0
 
